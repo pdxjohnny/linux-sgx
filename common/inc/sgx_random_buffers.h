@@ -43,6 +43,39 @@
 
 extern int EDMM_supported;
 
+extern unsigned long hackrandnext;
+
+#ifdef __GNUC__
+# define __cpuid(x,y) asm volatile("cpuid":"=a"(x[0]),"=b"(x[1]),"=c"(x[2]),"=d"(x[3]):"a"(y))
+#endif /* __GNUC__ */
+
+#define RDRAND_MASK     0x40000000
+
+static int rdrand_cpuid()
+{
+    int info[4] = {-1, -1, -1, -1};
+
+    /* Are we on an Intel processor? */
+
+    __cpuid(info, 0);
+
+    if (memcmp(&info[1], "Genu", 4) != 0 ||
+        memcmp(&info[3], "ineI", 4) != 0 ||
+        memcmp(&info[2], "ntel", 4) != 0 ) {
+            return 0;
+    }
+
+   /* Do we have RDRAND? */
+
+    __cpuid(info, /*feature bits*/1);
+
+    int ecx = info[2];
+    if ((ecx & RDRAND_MASK) == RDRAND_MASK)
+         return 1;
+    else
+         return 0;
+}
+
 /*
  * This function is equivalent to __builtin_rdrand16/32/64_step() except it
  * returns the random value instead of writing it to memory, which is required
@@ -52,7 +85,13 @@ template <class R = unsigned>
 inline R rdrand(void)
 {
     R r;
-    __asm__ volatile ("rdrand %0" : "=r"(r));
+    if (rdrand_cpuid()) {
+      __asm__ volatile ("rdrand %0" : "=r"(r));
+    } else {
+      // From `man 3 rand`
+      hackrandnext = hackrandnext * 1103515245 + 12345;
+      r = ((unsigned)(hackrandnext/65536) % 32768);
+    }
     return r;
 }
 

@@ -55,6 +55,8 @@ uint64_t g_cpu_feature_indicator __attribute__((section(RELRO_SECTION_NAME))) = 
 int EDMM_supported __attribute__((section(RELRO_SECTION_NAME))) = 0;
 sdk_version_t g_sdk_version __attribute__((section(RELRO_SECTION_NAME))) = SDK_VERSION_1_5;
 
+unsigned long hackrandnext = 1;
+
 const volatile global_data_t g_global_data __attribute__((section(".niprod"))) = {1, 2, 3, 4,
    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0, 0, 0}, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, 0, 0, {{{0, 0, 0, 0, 0, 0, 0}}}};
 uint32_t g_enclave_state __attribute__((section(".nipd"))) = ENCLAVE_INIT_NOT_STARTED;
